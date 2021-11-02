@@ -81,7 +81,7 @@ output("Helm working directory: " + helmPath)
 
 deployLicenseFolder = deployGELFolder + "/data/licenses"
 
-tokenGenToken = "X19hZG1pbl9fLTBiNTdmOTU0ZTgxOWZiMDg6bzR7ISIvTl85fiR9PTIuYTc2Mjc3OTJi"
+tokenGenToken = ""
 
 def cleanUpInstall():
 
@@ -374,16 +374,16 @@ def test():
     print()
 
 def install():
-    # timeFunc(checkDependencies)
-    # timeFunc(createGCPServiceAccount)
-    # timeFunc(createK8sCluster)
-    # timeFunc(createK8sServiceAccountsAndConnectToGCP)
-    # timeFunc(createGCPBucket)
-    # timeFunc(setupHelm)
-    # timeFunc(setupAndInstallGEL)
-    # timeFunc(deployTokenGenAndInstructionsForToken)
-    # timeFunc(checkGELInstall)
-    # timeFunc(checkGELAuthenticatedInstall)
+    timeFunc(checkDependencies)
+    timeFunc(createGCPServiceAccount)
+    timeFunc(createK8sCluster)
+    timeFunc(createK8sServiceAccountsAndConnectToGCP)
+    timeFunc(createGCPBucket)
+    timeFunc(setupHelm)
+    timeFunc(setupAndInstallGEL)
+    timeFunc(deployTokenGenAndInstructionsForToken)
+    timeFunc(checkGELInstall)
+    timeFunc(checkGELAuthenticatedInstall)
     timeFunc(installGE)
     quit()
 
