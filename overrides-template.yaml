@@ -1,0 +1,49 @@
+serviceAccount:
+  create: false
+  name: $kubeServiceAccountName
+
+# -- Ensure all Loki pods are using the same service account as the enterprise pods
+loki-distributed:
+  serviceAccount:
+    create: false
+    name: $kubeServiceAccountName
+
+adminApi:
+  # -- Define the amount of instances
+  replicas: 1
+  extraArgs: {
+    "admin-api.leader-election.enabled": "false",
+    "admin-api.leader-election.ring.store": "memberlist",
+  }
+
+config:
+  cluster_name: $kubeClusterName
+  admin_client:
+    storage:
+      type: gcs
+      gcs:
+        bucket_name: $gcpBucketName
+  ruler:
+    storage:
+      type: gcs
+      gcs:
+        bucket_name: $gcpBucketName
+  compactor:
+    shared_store: gcs
+  storage_config:
+    gcs:
+      bucket_name: $gcpBucketName
+    boltdb_shipper:
+      active_index_directory: /var/loki/index
+      cache_location: /var/loki/cache
+      cache_ttl: 24h # Can be increased for faster performance over longer query periods, uses more disk space
+      shared_store: gcs
+  schema_config:
+    configs:
+      - from: 2021-01-01
+        store: boltdb-shipper
+        object_store: gcs
+        schema: v11
+        index:
+          prefix: loki_index_
+          period: 24h

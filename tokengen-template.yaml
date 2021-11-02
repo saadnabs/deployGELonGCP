@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ge-logs-tokengen
+spec:
+  template:
+    spec:
+      containers:
+        - name: ge-logs-tokengen
+          image: grafana/enterprise-logs:v1.1.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - -config.file=/etc/loki/config/config.yaml
+            - -target=tokengen
+            - -tokengen.token-file=/shared/admin-token
+          volumeMounts:
+          - mountPath: /shared
+            name: shared
+          - mountPath: /etc/loki/config
+            name: config
+          - mountPath: /etc/enterprise-logs/license
+            name: license
+      volumes:
+        - name: config
+          secret:
+            defaultMode: 420
+            secretName: enterprise-logs-config
+        - name: license
+          secret:
+            defaultMode: 420
+            secretName: enterprise-logs-license
+        - emptyDir: {}
+          name: shared
+      serviceAccount: $kubeServiceAccountName
+      serviceAccountName: $kubeServiceAccountName
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: gcr
