@@ -25,9 +25,7 @@ This script is provided to run through the most common commands required to crea
     - -d: when passed, invokes a delete of the deployment with the version identifier
 
 An example run of the script:
-----
-python3.9 deployGEL.py -v 2
-----
+    python3.9 deployGEL.py -v 2
 
 - Bear in mind that the script will be interactive in a few different parts, so please keep an eye on it.
 - It can take up to #TODO 10 mins to complete
