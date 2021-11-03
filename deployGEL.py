@@ -1,6 +1,4 @@
 #TODO try removing the dev plugin from grafana-enterprise-template.yaml
-#TODO needing to add the GE license, even though it should be provided
-    #error: "license token file not found: /usr/share/grafana/.grafana/license.jwt"
 
 import os
 import re
@@ -99,6 +97,26 @@ gcpServiceAccountId = getGCPServiceAccountId()
 deployLicenseFolder = deployGELFolder + "/data/licenses"
 
 tokenGenToken = ""
+
+def createYamlFromTemplate(templateName, replaceDict):
+
+    fileName = templateName[0:templateName.find("-template")]
+    
+    #Modify the overrides variables
+    #template file
+    fin = open(deployGELFolder + "/" + templateName + ".yaml", "rt")
+    #output file to write the result to
+    fout = open(deployGELFolder + "/" + fileName + ".yaml", "wt")
+    
+    #for each line in the template file
+    for line in fin:
+        for key in replaceDict:
+            #read replace the string and write to output file
+            line = line.replace('$' + key, replaceDict[key])
+        fout.write(line)
+    #close template and output files
+    fin.close()
+    fout.close()
 
 def cleanUpInstall():
 
@@ -259,18 +277,13 @@ def setupHelm():
 def setupAndInstallGEL():
 
     output("Installing GEL", True)
-    #template file
-    fin = open(deployGELFolder + "/overrides-template.yaml", "rt")
-    #output file to write the result to
-    fout = open(deployGELFolder + "/overrides.yaml", "wt")
-    #for each line in the template file
-    for line in fin:
-        #read replace the string and write to output file
-        line = line.replace('$kubeServiceAccountName', kubeServiceAccountName).replace('$kubeClusterName', kubeClusterName).replace('$gcpBucketName', gcpBucketName)
-        fout.write(line)
-    #close template and output files
-    fin.close()
-    fout.close()
+
+    replaceFields = {
+        "kubeServiceAccountName" : kubeServiceAccountName,
+        "kubeClusterName" : kubeClusterName,
+        "gcpBucketName" : gcpBucketName
+    }
+    createYamlFromTemplate("overrides-template", replaceFields)
 
     p = subprocess.Popen("helm upgrade --install -f ./enterprise-logs/small.yaml -f " + deployGELFolder + "/overrides.yaml " + helmReleaseName + " ./enterprise-logs --set-file license.contents=" + deployLicenseFolder + "/license-gel.jwt --namespace " + kubeNamespace, cwd=helmPath, shell=True)
     p.wait()
@@ -293,18 +306,11 @@ def checkGELInstall():
 def deployTokenGenAndInstructionsForToken():
 
     output("Deploying Token Gen and *retrieving it", True)
-    #template file
-    fin = open(deployGELFolder + "/tokengen-template.yaml", "rt")
-    #output file to write the result to
-    fout = open(deployGELFolder + "/tokengen.yaml", "wt")
-    #for each line in the template file
-    for line in fin:
-        #read replace the string and write to output file
-        line = line.replace('$kubeServiceAccountName', kubeServiceAccountName)
-        fout.write(line)
-    #close template and output files
-    fin.close()
-    fout.close()
+
+    replaceFields = {
+        "kubeServiceAccountName" : kubeServiceAccountName
+    }
+    createYamlFromTemplate("tokengen-template", replaceFields)
 
     runAndShowCmd("kubectl apply -f " + deployGELFolder + "/tokengen.yaml --force --namespace " + kubeNamespace)
 
@@ -318,10 +324,35 @@ def checkGELAuthenticatedInstall():
     isReady = (stream.read() != "404 page not found\n")
     output("Attempting to access authenticated admin api on localhost:3100, success[" + str(isReady) + "]")
 
-def checkForServiceIP():
-    stream = os.popen("kubectl describe services grafana --namespace " + kubeNamespace + " | grep 'LoadBalancer Ingress'")
+def checkForResourceIP(resourceType, resourceName, ipGrepText):
+    stream = os.popen("kubectl describe " + resourceType + " " + resourceName + " --namespace " + kubeNamespace + " | grep '" + ipGrepText + "'")
     cmdOutput = stream.read()
     return cmdOutput
+
+def waitForResourceIP(resourceType, resourceName, ipText, timeoutMax):
+    ipOutput = checkForResourceIP(resourceType, resourceName, ipText)
+
+    count = 0
+    while (ipOutput == "\n" or ipOutput == ""):
+        time.sleep(2)
+        ipOutput = checkForResourceIP(resourceType, resourceName, ipText)
+        count = count + 1
+
+        if (count > timeoutMax):
+            output("Timed out waiting " + str((count - 1) * 2) + " seconds for the GE service IP to show up in K8s")
+            quit()
+        else:
+            if (count == 1):
+                output("Waiting for the service IP to show up but it hasn't yet...")
+            sys.stdout.write('\r')
+            #TODO use timeoutMax in the output
+            sys.stdout.write("[%-45s] %ds (90s timeout)" % ('='*count, 2*count))
+            sys.stdout.flush()
+
+    print("ipOutput " + ipOutput + " -- resourceType: " + resourceType)
+    if (ipOutput != ""):
+        ipOutput = re.findall( r'[0-9]+(?:\.[0-9]+){3}', ipOutput )
+        return ipOutput[0]
 
 def installGE():
 
@@ -330,48 +361,32 @@ def installGE():
 
     runAndShowCmd("kubectl create configmap ge-config --from-file=" + deployGELFolder + "/grafana.ini --namespace " + kubeNamespace)
 
-    #Modify the overrides variables
-    #template file
-    fin = open(deployGELFolder + "/grafana-enterprise-template.yaml", "rt")
-    #output file to write the result to
-    fout = open(deployGELFolder + "/grafana-enterprise.yaml", "wt")
-    #for each line in the template file
-    for line in fin:
-        #read replace the string and write to output file
-        line = line.replace('$kubeServiceAccountName', kubeServiceAccountName).replace('$kubeClusterName', kubeClusterName).replace('$gcpBucketName', gcpBucketName)
-        fout.write(line)
-    #close template and output files
-    fin.close()
-    fout.close()
+    replaceFields = {
+        "kubeServiceAccountName" : kubeServiceAccountName
+    }
+    createYamlFromTemplate("grafana-enterprise-template", replaceFields)
 
     p = subprocess.Popen("kubectl apply -f " + deployGELFolder + "/grafana-enterprise.yaml --namespace " + kubeNamespace, shell=True)
     p.wait()
 
-    count = 0
-    while (checkForServiceIP() == "\n" or checkForServiceIP() == ""):
-        time.sleep(2)
-        grafanaExternalIP = checkForServiceIP()
-        count = count + 1
-
-        if (count > 30):
-            output("Timed out waiting " + str((count - 1) * 2) + " seconds for the GE service IP to show up in K8s")
-            quit()
-        else:
-            if (count == 1):
-                output("Waiting for the service IP to show up but it hasn't yet...")
-            sys.stdout.write('\r')
-            sys.stdout.write("[%-45s] %ds (90s timeout)" % ('='*count, 2*count))
-            sys.stdout.flush()
-
-    if (checkForServiceIP() != ""):
-        grafanaExternalIP = checkForServiceIP().split()[2] 
+    ipOutput = waitForResourceIP("service", "grafana", "LoadBalancer Ingress", 45)
     
     print("\n") #given stdout has the \r and working on the same line
-    output("Go to http://" + grafanaExternalIP + ":3000/login")
+    output("Go to http://" + ipOutput + ":3000/login")
 
-def test():
+def installGELIngress():
+    replaceFields = {
+        "helmReleaseName" : helmReleaseName
+    }
+    createYamlFromTemplate("gel-ingress-template", replaceFields)
+
+    p = subprocess.Popen("kubectl apply -f " + deployGELFolder + "/gel-ingress.yaml --namespace " + kubeNamespace, shell=True)
+    p.wait()
+
+    ipOutput = waitForResourceIP("ingress", "gel-gateway-ingress", "IP is now", 45)
     
-    print()
+    print("\n") #given stdout has the \r and working on the same line
+    output("Use http://" + ipOutput + ":3100/ as the Logs plugin URL setting")
 
 def install():
     timeFunc(checkDependencies)
@@ -384,6 +399,7 @@ def install():
     timeFunc(deployTokenGenAndInstructionsForToken)
     timeFunc(checkGELInstall)
     timeFunc(checkGELAuthenticatedInstall)
+    timeFunc(installGELIngress)
     timeFunc(installGE)
     quit()
 
