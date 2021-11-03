@@ -75,7 +75,9 @@ git clone https://github.com/saadnabs/deployGELonGCP.git
     - -d: when passed, invokes a delete of the deployment with the version identifier
     - -p: prefix used for all the component names deployed (can be your username, keep it short though others length limits will be hit)
 
-- Bear in mind that the script will be interactive in a few different parts, so please keep an eye on it.
+- Bear in mind that the script will be interactive in a few different parts, so please keep an eye on it for the following inputs:
+  - Confirmation of having the dependencies
+  - Policy conditions (x5)
 - It can take up to #TODO 10 mins to complete
 
 An example run of the script, from within the deployGELonGCP folder:
@@ -140,7 +142,7 @@ Follow these steps after everything is deployed to start sending logs and seeing
 - Install promtail local using a binary you can download from here
   - Using the promtail-config-template.yaml, run promtail after modifying all the variables prefixed with $
     - $PROMTAIL-DATA-LOCATION, e.g a local directory that promtail can write to
-    - $GEL-GATEWAY-URL, e.g the TODO URL to your GEL gateway (use port-forwarding and localhost as a simple solution)
+    - $GEL-GATEWAY-URL, e.g the IP to your GEL gateway ingress (or use port-forwarding and localhost as a simple/local solution)
     - $GEL-INSTANCE-INTERNAL-NAME, e.g the internal name of the GEL instance
     - $GEL-INSTANCE-ACCESSPOLICY-TOKEN, e.g token taken from the access policy for writing
     - $HOSTNAME, e.g mymachine or node1, the host name of the machine sending the logs
@@ -150,3 +152,6 @@ Follow these steps after everything is deployed to start sending logs and seeing
 - Click “Explore” on the left menu bar, select the data source at the top to be the GEL data source we added previously and click on the “Log browser” so you see the logs that are coming through, select one of the labels and values, then click “Show logs”
 
 ## Potential improvements
+- Use the latest GEL plugin from the catalogue (currently using a dev instance due to a bug)
+- Use Google Cloud deployment manager templates instead of gcloud calls
+- Set more restrictive permissions on the service account
