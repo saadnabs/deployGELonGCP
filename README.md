@@ -1,3 +1,18 @@
+# Table of Contents
+[Deploying Grafana Enterprise Logs on GCP](#deploying-grafana-enterprise-logs-on-gcp)
+- [Table of Contents](#table-of-contents)
+- [Deploying Grafana Enterprise Logs on GCP](#deploying-grafana-enterprise-logs-on-gcp)
+  - [Getting started](#getting-started)
+    - [Dependencies](#dependencies)
+    - [Setting up a deployment environment](#setting-up-a-deployment-environment)
+    - [Running the script](#running-the-script)
+    - [Known Issues](#known-issues)
+    - [Outcome of the scipt should be](#outcome-of-the-scipt-should-be)
+    - [Finalising the setup](#finalising-the-setup)
+      - [Create Instance](#create-instance)
+      - [Create reader access policy and token](#create-reader-access-policy-and-token)
+      - [Install PromTail](#install-promtail)
+
 # Deploying Grafana Enterprise Logs on GCP
 
 This script is provided to run through the most common commands required to create a K8s cluster on GCP, create all the necessary service accounts and permissions, and deploy GEL via a helm chart.
@@ -73,7 +88,7 @@ python3.9 deployGEL.py -v 2 -p nabeel
 Nov 3, 2021
 - When the Grafana Enterprise pod is up and running, seems like you have to "uninstall" the GEL plugin and re-"install" it then provider the "Plugin settings"
 
-### Outcome of the scipt should be:
+### Outcome of the scipt should be
 - A GCP service account created
 - GCP IAM permissions added
 - A K8s auto cluster created
