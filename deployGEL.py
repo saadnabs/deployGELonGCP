@@ -82,6 +82,8 @@ helmGrafanaRepo = "https://grafana.github.io/helm-charts"
 helmFolder = "helm-charts"
 helmPath= helmFolder + "/charts"
 
+gelGatewayIngress = "gel-gateway-ingress"
+
 #Get the working directory and the helm directory
 stream = os.popen('pwd')
 deployGELFolder = stream.read().replace("\n", "")
@@ -129,6 +131,10 @@ def cleanUpInstall():
 
     output("Removing Grafana Enterprise")
     p = subprocess.Popen("kubectl delete -f " + deployGELFolder + "/grafana-enterprise.yaml --namespace " + kubeNamespace, shell=True)
+    p.wait()
+
+    output("Removing GEL ingress")
+    p = subprocess.Popen("kubectl delete ingress " + gelGatewayIngress + " --namespace " + kubeNamespace, shell=True)
     p.wait()
 
     output("Removing K8s SA")
@@ -300,27 +306,6 @@ def checkGELInstall():
     isReady = (stream.read() == "ready\n")
     output("Attempting to access admin api (pod:" + firstGatewayPodName + ") on localhost:3100, success[" + str(isReady) + "]")
 
-def deployTokenGenAndInstructionsForToken():
-
-    output("Deploying Token Gen and *retrieving it", True)
-
-    replaceFields = {
-        "kubeServiceAccountName" : kubeServiceAccountName
-    }
-    createYamlFromTemplate("tokengen-template", replaceFields)
-
-    runAndShowCmd("kubectl apply -f " + deployGELFolder + "/tokengen.yaml --force --namespace " + kubeNamespace)
-
-    #Extract the token from the logs of the job
-    stream = os.popen("kubectl describe job ge-logs-tokengen --namespace " + kubeNamespace + " | grep 'Created pod'")
-    cmdOutput = stream.read()
-    jobPodName = cmdOutput.split()[6]
-    
-    stream = os.popen("kubectl logs " + jobPodName + " --namespace " + kubeNamespace + " | grep 'Token:'")
-    cmdOutput = stream.read()
-    tokenGenToken = cmdOutput.split()[1]
-    output("Your token from the job ge-logs-tokengen: " + tokenGenToken)
-
 def checkGELAuthenticatedInstall():
     output("Checking GEL Authenticated Install", True)
     stream = os.popen("curl -s -u :" + tokenGenToken + " http://localhost:3100/admin/api/v1/instances")
@@ -332,7 +317,7 @@ def checkForResourceIP(resourceType, resourceName, ipGrepText):
     cmdOutput = stream.read()
     return cmdOutput
 
-def waitForResourceIP(resourceType, resourceName, ipText, timeoutMax):
+def waitForResource(resourceType, resourceName, ipText, timeoutMax):
     ipOutput = checkForResourceIP(resourceType, resourceName, ipText)
 
     count = 0
@@ -342,20 +327,48 @@ def waitForResourceIP(resourceType, resourceName, ipText, timeoutMax):
         count = count + 1
 
         if (count > timeoutMax):
-            output("Timed out waiting " + str((count - 1) * 2) + " seconds for the GE service IP to show up in K8s")
+            output("Timed out waiting " + str((count - 1) * 2) + " seconds for the resource[" + resourceName + "] to show up in K8s")
             quit()
         else:
             if (count == 1):
-                output("Waiting for the service IP to show up but it hasn't yet...")
+                output("Waiting for the resource[" + resourceName + "] to show up but it hasn't yet...")
             sys.stdout.write('\r')
             #TODO use timeoutMax in the output
             sys.stdout.write("[%-45s] %ds (90s timeout)" % ('='*count, 2*count))
             sys.stdout.flush()
 
-    print("ipOutput " + ipOutput + " -- resourceType: " + resourceType)
+    #print("ipOutput " + ipOutput + " -- resourceType: " + resourceType)
     if (ipOutput != ""):
-        ipOutput = re.findall( r'[0-9]+(?:\.[0-9]+){3}', ipOutput )
-        return ipOutput[0]
+        if (resourceType == "pods"):
+            return ipOutput.split()[0]
+        else:
+            ipOutput = re.findall( r'[0-9]+(?:\.[0-9]+){3}', ipOutput )
+            return ipOutput[0]
+
+def deployTokenGenAndInstructionsForToken():
+
+    output("Deploying Token Gen and *retrieving it", True)
+
+    replaceFields = {
+        "kubeServiceAccountName" : kubeServiceAccountName
+    }
+    createYamlFromTemplate("tokengen-template", replaceFields)
+
+    runAndShowCmd("kubectl apply -f " + deployGELFolder + "/tokengen.yaml --force --namespace " + kubeNamespace)
+
+    podOutput = waitForResource("pods", "ge-logs-tokengen", "Name:", 45)
+    if not podOutput.startswith("Error from server"):
+        #Extract the token from the logs of the job
+        stream = os.popen("kubectl describe job ge-logs-tokengen --namespace " + kubeNamespace + " | grep 'Created pod'")
+        cmdOutput = stream.read()
+        jobPodName = cmdOutput.split()[6]
+        
+        stream = os.popen("kubectl logs " + jobPodName + " --namespace " + kubeNamespace + " | grep 'Token:'")
+        cmdOutput = stream.read()
+        tokenGenToken = cmdOutput.split()[1]
+        output("Your token from the job ge-logs-tokengen: " + tokenGenToken)
+    else:
+        output("Waited for token but it did not complete, quitting.")
 
 def installGE():
 
@@ -372,24 +385,28 @@ def installGE():
     p = subprocess.Popen("kubectl apply -f " + deployGELFolder + "/grafana-enterprise.yaml --namespace " + kubeNamespace, shell=True)
     p.wait()
 
-    ipOutput = waitForResourceIP("service", "grafana", "LoadBalancer Ingress", 45)
+    ipOutput = waitForResource("service", "grafana", "LoadBalancer Ingress", 45)
     
     print("\n") #given stdout has the \r and working on the same line
     output("Go to http://" + ipOutput + ":3000/login")
 
 def installGELIngress():
+    
+    output("Deploying GEL gateway ingress", True)
+
     replaceFields = {
-        "helmReleaseName" : helmReleaseName
+        "helmReleaseName" : helmReleaseName,
+        "gelGatewayIngress" : gelGatewayIngress
     }
     createYamlFromTemplate("gel-ingress-template", replaceFields)
 
     p = subprocess.Popen("kubectl apply -f " + deployGELFolder + "/gel-ingress.yaml --namespace " + kubeNamespace, shell=True)
     p.wait()
 
-    ipOutput = waitForResourceIP("ingress", "gel-gateway-ingress", "IP is now", 45)
+    ipOutput = waitForResource("ingress", gelGatewayIngress, "IP is now", 45)
     
     print("\n") #given stdout has the \r and working on the same line
-    output("Use http://" + ipOutput + ":3100/ as the Logs plugin URL setting")
+    output("Use http://" + ipOutput + ":80/ as the Logs plugin URL setting")
 
 def install():
     timeFunc(checkDependencies)
