@@ -9,3 +9,4 @@
 **/overrides.yaml
 **/promtail-config.yaml
 **/tokengen.yaml
+**/gel-ingress.yaml
