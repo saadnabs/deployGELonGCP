@@ -52,6 +52,15 @@ def getGCPServiceAccountId():
         output("Did not find service account name listed for search criteria [" + username + "]")
         return ""
 
+# def getConfig():
+#     import json
+
+#     with open("config.json") as json_data_file:
+#         data = json.load(json_data_file)
+#     print(data)
+
+# getConfig()
+
 #Variables defined for use throughout
 username = "nabeel"
 
@@ -63,10 +72,10 @@ gcpProjectId = "solutions-engineering-248511"
 gcpRegion = "europe-west1"
 gcpBucketName = username + "-bucket-" + version
 gcpKubernetesClusterName = username + "-gel-" + version
-gcpServiceAccountName = username + "-se-offsite"
+gcpServiceAccountName = username + "-se-offsite-" + version
 gcpServiceAccountId = getGCPServiceAccountId()
 
-helmReleaseName = username + "-gel-release"
+helmReleaseName = username + "-gel-release-" + version
 helmGrafanaRepo = "https://grafana.github.io/helm-charts"
 helmFolder = "helm-charts"
 helmPath= helmFolder + "/charts"
@@ -78,6 +87,18 @@ output("Current working directory: " + deployGELFolder)
 lastSlashIndex = deployGELFolder.rfind("/")
 helmPath = deployGELFolder[0:lastSlashIndex + 1] + helmPath
 output("Helm working directory: " + helmPath)
+
+deployLicenseFolder = deployGELFolder + "/data/licenses"
+
+#Get the working directory and the helm directory
+stream = os.popen('pwd')
+deployGELFolder = stream.read().replace("\n", "")
+output("Current working directory: " + deployGELFolder)
+lastSlashIndex = deployGELFolder.rfind("/")
+helmPath = deployGELFolder[0:lastSlashIndex + 1] + helmPath
+output("Helm working directory: " + helmPath)
+
+gcpServiceAccountId = getGCPServiceAccountId()
 
 deployLicenseFolder = deployGELFolder + "/data/licenses"
 
@@ -160,7 +181,7 @@ def checkDependencies():
     output("Go to https://admin.grafana.com to create Grafana licenses for:")
     output("--> Grafana Enterprise Logs (save as license-gel.jwt)")
     output("--> Grafana Enterprise (save as license-ge.jwt)")
-    output("Copy those licenses to your local ./deployGEL/data/licenses folder")
+    output("Copy those licenses to your local ./" + deployGELFolder + "/data/licenses folder")
 
     input("\nPressing Enter confirms that you have the above tools. \nOtherwise, break out of the command and install the required tools.\n")
 
