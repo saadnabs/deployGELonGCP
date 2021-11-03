@@ -329,14 +329,14 @@ def waitForResource(resourceType, resourceName, ipText, timeoutMax):
         count = count + 1
 
         if (count > timeoutMax):
-            output("Timed out waiting " + str((count - 1) * 2) + " seconds for the resource[" + resourceName + "] to show up in K8s")
+            output("\nTimed out waiting " + str((count - 1) * 2) + " seconds for the resource[" + resourceName + "] to show up in K8s")
             quit()
         else:
             if (count == 1):
                 output("Waiting for the resource[" + resourceName + "] to show up but it hasn't yet...")
             sys.stdout.write('\r')
             #TODO use timeoutMax in the output
-            sys.stdout.write("[%-45s] %ds (90s timeout)" % ('='*count, 2*count))
+            sys.stdout.write("[%-60s] %ds (120s timeout)" % ('='*count, 2*count))
             sys.stdout.flush()
 
     #print("ipOutput " + ipOutput + " -- resourceType: " + resourceType)
@@ -391,7 +391,7 @@ def installGE():
     p = subprocess.Popen("kubectl apply -f " + deployGELFolder + "/grafana-enterprise.yaml --namespace " + kubeNamespace, shell=True)
     p.wait()
 
-    ipOutput = waitForResource("service", "grafana", "LoadBalancer Ingress", 45)
+    ipOutput = waitForResource("service", "grafana", "LoadBalancer Ingress", 60)
     
     print("\n") #given stdout has the \r and working on the same line
     output("Go to http://" + ipOutput + ":3000/login")
@@ -410,7 +410,7 @@ def installGELIngress():
     p = subprocess.Popen("kubectl apply -f " + deployGELFolder + "/gel-ingress.yaml --namespace " + kubeNamespace, shell=True)
     p.wait()
 
-    gelIngressIP = waitForResource("ingress", gelGatewayIngress, "IP is now", 45)
+    gelIngressIP = waitForResource("ingress", gelGatewayIngress, "IP is now", 60)
     
     print("\n") #given stdout has the \r and working on the same line
     output("Use http://" + gelIngressIP + ":80/ as the Logs plugin URL setting")
