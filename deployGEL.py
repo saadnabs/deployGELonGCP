@@ -88,16 +88,6 @@ lastSlashIndex = deployGELFolder.rfind("/")
 helmPath = deployGELFolder[0:lastSlashIndex + 1] + helmPath
 output("Helm working directory: " + helmPath)
 
-deployLicenseFolder = deployGELFolder + "/data/licenses"
-
-#Get the working directory and the helm directory
-stream = os.popen('pwd')
-deployGELFolder = stream.read().replace("\n", "")
-output("Current working directory: " + deployGELFolder)
-lastSlashIndex = deployGELFolder.rfind("/")
-helmPath = deployGELFolder[0:lastSlashIndex + 1] + helmPath
-output("Helm working directory: " + helmPath)
-
 gcpServiceAccountId = getGCPServiceAccountId()
 
 deployLicenseFolder = deployGELFolder + "/data/licenses"
