@@ -1,4 +1,6 @@
 #TODO try removing the dev plugin from grafana-enterprise-template.yaml
+#TODO needing to add the GE license, even though it should be provided
+    #error: "license token file not found: /usr/share/grafana/.grafana/license.jwt"
 
 import os
 import re
@@ -352,13 +354,13 @@ def installGE():
         count = count + 1
 
         if (count > 30):
-            output("Timed out waiting " + str(count * 2) + " seconds for the GE service IP to show up in K8s")
+            output("Timed out waiting " + str((count - 1) * 2) + " seconds for the GE service IP to show up in K8s")
             quit()
         else:
             if (count == 1):
                 output("Waiting for the service IP to show up but it hasn't yet...")
             sys.stdout.write('\r')
-            sys.stdout.write("[%-30s] %ds (60s timeout)" % ('='*count, 2*count))
+            sys.stdout.write("[%-45s] %ds (90s timeout)" % ('='*count, 2*count))
             sys.stdout.flush()
 
     if (checkForServiceIP() != ""):
