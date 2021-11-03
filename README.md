@@ -17,21 +17,43 @@ This script is provided to run through the most common commands required to crea
     
     - Copy those licenses to your local ./deployGEL/data/licenses folder
 
-#TODO pull variables into a config file for the python script
+### Setting up a deployment environment
+- Create a default VM instance (Linux) in Google Cloud, allow http/https traffic, and connect via SSH
+- Install python
+```
+apt install python3
+```
+- Confirm gcloud / gsutil are already installed
+- Initialise gcloud to your project by following the cli instructions
+```
+gcloud init
+```
+- Install kubectl, [instructions](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
+- Install helm, [instructions](https://helm.sh/docs/intro/install/)
+- Upload licenses to GCE instance - [instructions](https://cloud.google.com/compute/docs/instances/transfer-files)
+- Install git
+```
+sudo apt-get install git
+```
+- Download the deployGEL github repo
+```
+git clone https://github.com/saadnabs/deployGELonGCP.git
+```
 
 ### Running the script
 - The script takes two optional flags
     - -v: version of your deploy, will be used as a unique identifier when deploying all the components
     - -d: when passed, invokes a delete of the deployment with the version identifier
+    - -p: prefix used for all the component names deployed (can be your username, keep it short though others length limits will be hit)
+
+- Bear in mind that the script will be interactive in a few different parts, so please keep an eye on it.
+- It can take up to #TODO 10 mins to complete
 
 An example run of the script:
 
 ```
-python3.9 deployGEL.py -v 2
+python3.9 deployGEL.py -v 2 -p nabeel
 ```
-
-- Bear in mind that the script will be interactive in a few different parts, so please keep an eye on it.
-- It can take up to #TODO 10 mins to complete
 
 ### Outcome of the scipt should be:
 - A GCP service account created
