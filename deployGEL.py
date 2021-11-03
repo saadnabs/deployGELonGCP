@@ -253,9 +253,6 @@ def createK8sServiceAccountsAndConnectToGCP():
     
     runAndShowCmd("kubectl annotate serviceaccounts " + kubeServiceAccountName + " --namespace " + kubeNamespace + " iam.gke.io/gcp-service-account=" + gcpServiceAccountId + " --overwrite")  #gcpProjectId + ".svc.id.goog --overwrite")
     
-    #TODO is this needed? takes very very long to update cluster
-    #runAndShowCmd("gcloud container clusters update " + gcpKubernetesClusterName + " --workload-pool=" + gcpProjectId + ".svc.id.goog --region " + gcpRegion)
-
 def createGCPBucket():
     output("Creating GCP storage bucket", True)
     runAndShowCmd("gsutil mb -p " + gcpProjectId + " -c STANDARD -l " + gcpRegion + " -b on gs://" + gcpBucketName)
@@ -314,9 +311,15 @@ def deployTokenGenAndInstructionsForToken():
 
     runAndShowCmd("kubectl apply -f " + deployGELFolder + "/tokengen.yaml --force --namespace " + kubeNamespace)
 
-    #TODO can i extract myself without requiring input?
-    output("Please get your token from the job ge-logs-tokengen logs and input here to continue")
-    tokenGenToken = input()
+    #Extract the token from the logs of the job
+    stream = os.popen("kubectl describe job ge-logs-tokengen --namespace " + kubeNamespace + " | grep 'Created pod'")
+    cmdOutput = stream.read()
+    jobPodName = cmdOutput.split()[6]
+    
+    stream = os.popen("kubectl logs " + jobPodName + " --namespace " + kubeNamespace + " | grep 'Token:'")
+    cmdOutput = stream.read()
+    tokenGenToken = cmdOutput.split()[1]
+    output("Your token from the job ge-logs-tokengen: " + tokenGenToken)
 
 def checkGELAuthenticatedInstall():
     output("Checking GEL Authenticated Install", True)
@@ -412,6 +415,3 @@ else:
 #TODO kill localhost:3100 port forward
 #sudo lsof -n -i :3100
 #kill -9 $pid
-
-
-#TODO, seems to always have the bucket existing first when getting to createGCPBucket
