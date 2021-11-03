@@ -5,7 +5,7 @@
 **/positions.yaml
 
 # ignore all locally generated yamls from the templates
-./grafana-enterprise.yaml
-./overrides.yaml
-./promtail-config.yaml
-./tokengen.yaml
+**/grafana-enterprise.yaml
+**/overrides.yaml
+**/promtail-config.yaml
+**/tokengen.yaml
