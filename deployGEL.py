@@ -1,3 +1,5 @@
+#TODO try removing the dev plugin from grafana-enterprise-template.yaml
+
 import os
 import re
 import argparse
@@ -47,8 +49,6 @@ def getGCPServiceAccountId():
     cmdOut = stream.read()
 
     match = re.findall(r'[\w.+-]+@[\w-]+\.[\w.-]+', cmdOut)
-
-    #TODO if match[0] == "" then can't progress, something broke
 
     if (match):
         return match[0]
@@ -108,7 +108,6 @@ def cleanUpInstall():
     p.wait()
 
     output("Removing Grafana Enterprise")
-    #TODO why does this complain about not finding things, but uninstalls?
     p = subprocess.Popen("kubectl delete -f " + deployGELFolder + "/grafana-enterprise.yaml --namespace " + kubeNamespace, shell=True)
     p.wait()
 
@@ -126,7 +125,6 @@ def cleanUpInstall():
     gcpServiceAccountId = gcpServiceAccountName + "@solutions-engineering-248511.iam.gserviceaccount.com"
 
     #Remove the GCP service account permission
-    #TODO does this work to remove the IAM permissions?
     output("Removing IAM permissions")
     
     #Get the current policy
