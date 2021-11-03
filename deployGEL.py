@@ -1,4 +1,5 @@
 #TODO try removing the dev plugin from grafana-enterprise-template.yaml
+#TODO add curl for promtail (version?) and 
 
 import os
 import re
@@ -99,6 +100,7 @@ gcpServiceAccountId = getGCPServiceAccountId()
 deployLicenseFolder = deployGELFolder + "/data/licenses"
 
 tokenGenToken = ""
+gelIngressIP = ""
 
 def createYamlFromTemplate(templateName, replaceDict):
 
@@ -393,6 +395,7 @@ def installGE():
     
     print("\n") #given stdout has the \r and working on the same line
     output("Go to http://" + ipOutput + ":3000/login")
+    output("Use   http://" + gelIngressIP + ":80/ as the Logs plugin URL setting")
 
 def installGELIngress():
     
@@ -407,10 +410,10 @@ def installGELIngress():
     p = subprocess.Popen("kubectl apply -f " + deployGELFolder + "/gel-ingress.yaml --namespace " + kubeNamespace, shell=True)
     p.wait()
 
-    ipOutput = waitForResource("ingress", gelGatewayIngress, "IP is now", 45)
+    gelIngressIP = waitForResource("ingress", gelGatewayIngress, "IP is now", 45)
     
     print("\n") #given stdout has the \r and working on the same line
-    output("Use http://" + ipOutput + ":80/ as the Logs plugin URL setting")
+    output("Use http://" + gelIngressIP + ":80/ as the Logs plugin URL setting")
 
 def install():
     timeFunc(checkDependencies)
