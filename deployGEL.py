@@ -288,7 +288,7 @@ def setupAndInstallGEL():
     }
     createYamlFromTemplate("overrides-template", replaceFields)
 
-    p = subprocess.Popen("helm upgrade --install -f ./enterprise-logs/small.yaml -f " + deployGELFolder + "/overrides.yaml " + helmReleaseName + " ./enterprise-logs --set-file license.contents=" + deployLicenseFolder + "/license-gel.jwt --namespace " + kubeNamespace, cwd=helmPath, shell=True)
+    p = subprocess.Popen("helm upgrade --install --timeout 3m -f ./enterprise-logs/small.yaml -f " + deployGELFolder + "/overrides.yaml " + helmReleaseName + " ./enterprise-logs --set-file license.contents=" + deployLicenseFolder + "/license-gel.jwt --namespace " + kubeNamespace, cwd=helmPath, shell=True)
     p.wait()
 
 def checkGELInstall():
