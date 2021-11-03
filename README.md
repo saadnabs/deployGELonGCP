@@ -11,6 +11,7 @@
       - [Create Instance](#create-instance)
       - [Create reader access policy and token](#create-reader-access-policy-and-token)
       - [Install PromTail](#install-promtail)
+  - [Potential improvements](#potential-improvements)
 
 # Deploying Grafana Enterprise Logs on GCP
 
@@ -147,3 +148,5 @@ Follow these steps after everything is deployed to start sending logs and seeing
   ./promtail-darwin-amd64 -config.file=~/$deployGEL/promtail-config.yaml
   ```
 - Click “Explore” on the left menu bar, select the data source at the top to be the GEL data source we added previously and click on the “Log browser” so you see the logs that are coming through, select one of the labels and values, then click “Show logs”
+
+## Potential improvements
