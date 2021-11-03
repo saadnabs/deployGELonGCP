@@ -85,7 +85,7 @@ python3.9 deployGEL.py -v 2 -p nabeel
 
 ### Known Issues
 Nov 3, 2021
-- When the Grafana Enterprise pod is up and running, seems like you have to "uninstall" the GEL plugin and re-"install" it then provider the "Plugin settings"
+None identified at the moment.
 
 ### Outcome of the scipt should be
 - A GCP service account created
