@@ -1,0 +1,10 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gel-gateway-ingress
+spec:
+  defaultBackend:
+    service:
+      name: $helmReleaseName-enterprise-logs-gateway
+      port:
+        number: 3100
