@@ -355,6 +355,7 @@ def deployTokenGenAndInstructionsForToken():
     createYamlFromTemplate("tokengen-template", replaceFields)
 
     runAndShowCmd("kubectl apply -f " + deployGELFolder + "/tokengen.yaml --force --namespace " + kubeNamespace)
+    time.sleep(2)
 
     podOutput = waitForResource("pods", "ge-logs-tokengen", "Name:", 45)
     if not podOutput.startswith("Error from server"):
@@ -363,6 +364,9 @@ def deployTokenGenAndInstructionsForToken():
         cmdOutput = stream.read()
         jobPodName = cmdOutput.split()[6]
         
+        runAndShowCmd("kubectl wait --for=condition=complete job/ge-logs-tokengen --namespace " + kubeNamespace)
+        
+        output("kubectl logs " + jobPodName + " --namespace " + kubeNamespace + " | grep 'Token:'")
         stream = os.popen("kubectl logs " + jobPodName + " --namespace " + kubeNamespace + " | grep 'Token:'")
         cmdOutput = stream.read()
         tokenGenToken = cmdOutput.split()[1]
