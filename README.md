@@ -77,7 +77,7 @@ git clone https://github.com/saadnabs/deployGELonGCP.git
 - Bear in mind that the script will be interactive in a few different parts, so please keep an eye on it.
 - It can take up to #TODO 10 mins to complete
 
-An example run of the script:
+An example run of the script, from within the deployGELonGCP folder:
 
 ```
 python3.9 deployGEL.py -v 2 -p nabeel
