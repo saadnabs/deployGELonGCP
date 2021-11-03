@@ -416,6 +416,9 @@ def installGELIngress():
     output("Use http://" + gelIngressIP + ":80/ as the Logs plugin URL setting")
 
 def install():
+
+    startTime = time.time()
+
     timeFunc(checkDependencies)
     timeFunc(createGCPServiceAccount)
     timeFunc(createK8sCluster)
@@ -428,6 +431,10 @@ def install():
     timeFunc(checkGELAuthenticatedInstall)
     timeFunc(installGELIngress)
     timeFunc(installGE)
+
+    endTime = time.time()
+    output(install.__name__ + " time elapsed: " + str((endTime - startTime)))
+
     quit()
 
 #Check for command argument "delete'"
