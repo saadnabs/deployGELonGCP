@@ -79,7 +79,7 @@ git clone https://github.com/saadnabs/deployGELonGCP.git
 - Bear in mind that the script will be interactive in a few different parts, so please keep an eye on it for the following inputs:
   - Confirmation of having the dependencies
   - Policy conditions (x5)
-- It can take up to #TODO 10 mins (+ ~5min for K8s cluster creation) to complete
+- It can take about 7 mins (+ ~5min for K8s cluster creation) to complete
 
 An example run of the script, from within the deployGELonGCP folder:
 
