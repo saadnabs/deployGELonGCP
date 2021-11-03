@@ -11,12 +11,16 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--version",dest ="version", default="1", help="The version to use in the deployment")
 parser.add_argument('-d', action='store_true', help='Delete action to undertake')
+
+#TODO change default from Nabeel eventually
+parser.add_argument("-p", "--prefix",dest ="username", default="nabeel", help="The prefix to use across all the components deployed")
 args = parser.parse_args()
 
 version = "v" + args.version
 delete = args.d
-#output("delete: " + str(delete))
-#output(version)
+username = args.username
+
+#print(username)
 
 def output(msg, isHeader=False):
     if (isHeader):
@@ -62,8 +66,6 @@ def getGCPServiceAccountId():
 # getConfig()
 
 #Variables defined for use throughout
-username = "nabeel"
-
 kubeClusterName = username + "-cluster"#-" + version #removing version to not have to update license every time
 kubeNamespace = username + "-gel-" + version
 kubeServiceAccountName = username + "-sa-" + version
@@ -218,12 +220,7 @@ def createK8sServiceAccountsAndConnectToGCP():
     runAndShowCmd("kubectl create serviceaccount " + kubeServiceAccountName + " --namespace " + kubeNamespace)
 
     output("\nSelect option (3) below when requested\n")
-    #output("gcpProjectId " + gcpProjectId + " -- gcpServiceAccount " + gcpServiceAccountId)
-
-    #TODO THIS ONE errors here, maybe cause permissions already existed?
-    #Select option (3) below when requested
-    #--> gcloud projects add-iam-policy-binding solutions-engineering-248511 --member 'serviceAccount:' --role roles/owner
-
+    
     #This creates the IAM bindings for the Service Account
     runAndShowCmd("gcloud projects add-iam-policy-binding " + gcpProjectId + " --member 'serviceAccount:" + gcpServiceAccountId + "' --role roles/owner")
     #TODO do i need this? 
@@ -233,14 +230,6 @@ def createK8sServiceAccountsAndConnectToGCP():
     runAndShowCmd("gcloud projects add-iam-policy-binding " + gcpProjectId + " --member 'serviceAccount:" + gcpServiceAccountId + "' --role roles/storage.admin")
     
     runAndShowCmd("gcloud projects add-iam-policy-binding " + gcpProjectId + " --member 'serviceAccount:" + gcpServiceAccountId + "' --role roles/iam.workloadIdentityUser")
-
-    #output("gcloud iam service-accounts add-iam-policy-binding " + gcpServiceAccountId + " --role roles/iam.workloadIdentityUser --member 'serviceAccount:" + gcpServiceAccountId + "'")
-
-    #runAndShowCmd("gcloud iam service-accounts add-iam-policy-binding " + gcpServiceAccountId + " --role roles/iam.workloadIdentityUser --member 'serviceAccount:" + gcpServiceAccountId + "'")
-    #runAndShowCmd("gcloud iam service-accounts add-iam-policy-binding " + gcpServiceAccountId + " --role roles/storage.admin --member 'serviceAccount:" + gcpServiceAccountId + "'")
-    #runAndShowCmd("gcloud iam service-accounts add-iam-policy-binding " + gcpServiceAccountId + " --role roles/iam.serviceAccountTokenCreator --member 'serviceAccount:" + gcpServiceAccountId + "'")
-    #runAndShowCmd("gcloud iam service-accounts add-iam-policy-binding " + gcpServiceAccountId + " --role roles/owner --member 'serviceAccount:" + gcpServiceAccountId + "'")
-    #runAndShowCmd("gcloud iam service-accounts add-iam-policy-binding " + gcpServiceAccountId + " --role roles/iam.workloadIdentityUser --member 'serviceAccount:"  + gcpProjectId + ".svc.id.goog[" + kubeNamespace + "/" + kubeServiceAccountName + "]'")
 
     runAndShowCmd("gcloud iam service-accounts add-iam-policy-binding " + gcpServiceAccountId + " --role roles/iam.workloadIdentityUser --member 'serviceAccount:" + gcpProjectId + ".svc.id.goog[" + kubeNamespace + "/" + kubeServiceAccountName + "]'")
     
@@ -259,15 +248,12 @@ def setupHelm():
 
     runAndShowCmd("git clone https://github.com/grafana/helm-charts.git " + helmFolder)
 
-    #TODO test once I clear everything out
     p = subprocess.Popen(["helm", "repo", "add", "grafana", helmGrafanaRepo], cwd=helmPath)
     p.wait()
 
-    #TODO figure out where the helm folder is created, is it using new-helm?
     p = subprocess.Popen(["helm", "repo", "update"], cwd=helmPath)
     p.wait()
 
-    #TODO will this work in the right directory as well? or use the path variables I have
     runAndShowCmd("helm dependency update " + helmPath + "/enterprise-logs")
 
 def setupAndInstallGEL():
@@ -286,7 +272,6 @@ def setupAndInstallGEL():
     fin.close()
     fout.close()
 
-    #TODO need to check if file paths need to be updated in the below script
     p = subprocess.Popen("helm upgrade --install -f ./enterprise-logs/small.yaml -f " + deployGELFolder + "/overrides.yaml " + helmReleaseName + " ./enterprise-logs --set-file license.contents=" + deployLicenseFolder + "/license-gel.jwt --namespace " + kubeNamespace, cwd=helmPath, shell=True)
     p.wait()
 
@@ -389,11 +374,11 @@ def test():
     print()
 
 def install():
-    # timeFunc(checkDependencies)
-    # timeFunc(createGCPServiceAccount)
-    # timeFunc(createK8sCluster)
-    # timeFunc(createK8sServiceAccountsAndConnectToGCP)
-    # timeFunc(createGCPBucket)
+    timeFunc(checkDependencies)
+    timeFunc(createGCPServiceAccount)
+    timeFunc(createK8sCluster)
+    timeFunc(createK8sServiceAccountsAndConnectToGCP)
+    timeFunc(createGCPBucket)
     timeFunc(setupHelm)
     timeFunc(setupAndInstallGEL)
     timeFunc(deployTokenGenAndInstructionsForToken)
