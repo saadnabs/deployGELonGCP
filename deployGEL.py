@@ -86,7 +86,9 @@ deployGELFolder = stream.read().replace("\n", "")
 output("Current working directory: " + deployGELFolder)
 lastSlashIndex = deployGELFolder.rfind("/")
 helmPath = deployGELFolder[0:lastSlashIndex + 1] + helmPath
-output("Helm working directory: " + helmPath)
+helmFolder = deployGELFolder[0:lastSlashIndex + 1] + helmFolder
+output("Helm charts working directory: " + helmPath)
+output("Helm root folder: " + helmFolder)
 
 gcpServiceAccountId = getGCPServiceAccountId()
 
