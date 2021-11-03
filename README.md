@@ -26,35 +26,36 @@ This script is provided to run through the most common commands required to crea
   - kubectl
   - gsutil
   - helm
+  
 - Grafana Enterprise and Logs licenses are required
-    - Grafana Enterprise Logs (save as license-gel.jwt)
-    - Grafana Enterprise (save as license-ge.jwt)
+  - Grafana Enterprise Logs (save as license-gel.jwt)
+  - Grafana Enterprise (save as license-ge.jwt)
     
-    - Copy those licenses to your local ./deployGEL/data/licenses folder
+  - Copy those licenses to your local ./deployGEL/data/licenses folder
 
 ### Setting up a deployment environment
 - Create a default VM instance (Linux) in Google Cloud, allow http/https traffic, and connect via SSH
 - Install python
 ```
-sudo apt install python3
+  sudo apt install python3
 ```
 - Confirm gcloud / gsutil are already installed
 - Initialise gcloud to your project by following the cli instructions
 ```
-gcloud init
+  gcloud init
 ```
 - Install kubectl, [instructions](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 ```
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-kubectl version --client
+  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+  kubectl version --client
 ```
 - Install helm, [instructions](https://helm.sh/docs/intro/install/)
 ```
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-helm version
+  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+  chmod 700 get_helm.sh
+  ./get_helm.sh
+  helm version
 ```
 - Upload licenses to GCE instance - [instructions](https://cloud.google.com/compute/docs/instances/transfer-files)
   - And move them into the correct folder (deployGELonGCP/data/licenses)
@@ -78,7 +79,7 @@ git clone https://github.com/saadnabs/deployGELonGCP.git
 - Bear in mind that the script will be interactive in a few different parts, so please keep an eye on it for the following inputs:
   - Confirmation of having the dependencies
   - Policy conditions (x5)
-- It can take up to #TODO 10 mins to complete
+- It can take up to #TODO 10 mins (+ ~5min for K8s cluster creation) to complete
 
 An example run of the script, from within the deployGELonGCP folder:
 
@@ -87,8 +88,7 @@ python3.9 deployGEL.py -v 2 -p nabeel
 ```
 
 ### Known Issues
-Nov 3, 2021
-None identified at the moment.
+Nov 3, 2021: None identified at the moment.
 
 ### Outcome of the scipt should be
 - A GCP service account created
@@ -96,6 +96,7 @@ None identified at the moment.
 - A K8s auto cluster created
 - A K8s namespace and service account annotated with the GCP service account
 - A helm deployment of GEL
+- An ingress controller for the GEL gateway
 - A deployment of GE
 
 ### Finalising the setup
