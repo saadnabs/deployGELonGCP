@@ -253,9 +253,9 @@ def createGCPBucket():
 
 def setupHelm():
     output("Setting up Helm", True)
-    Path(helmPath).mkdir(parents=True, exist_ok=True)
+    Path(helmFolder).mkdir(parents=True, exist_ok=True)
 
-    runAndShowCmd("git clone https://github.com/grafana/helm-charts.git ../")
+    runAndShowCmd("git clone https://github.com/grafana/helm-charts.git " + helmFolder)
 
     #TODO test once I clear everything out
     p = subprocess.Popen(["helm", "repo", "add", "grafana", helmGrafanaRepo], cwd=helmPath)
