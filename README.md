@@ -1,5 +1,4 @@
 # Table of Contents
-[Deploying Grafana Enterprise Logs on GCP](#deploying-grafana-enterprise-logs-on-gcp)
 - [Table of Contents](#table-of-contents)
 - [Deploying Grafana Enterprise Logs on GCP](#deploying-grafana-enterprise-logs-on-gcp)
   - [Getting started](#getting-started)
