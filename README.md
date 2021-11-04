@@ -35,6 +35,9 @@ This script is provided to run through the most common commands required to crea
 
 ### Setting up a deployment environment
 - Create a default VM instance (Linux) in Google Cloud, allow http/https traffic, and connect via SSH
+```
+  gcloud compute instances create $NAME --project=solutions-engineering-248511 --zone=$gcpRegion --machine-type=e2-standard-4 --tags=http-server,https-server 
+```
 - Install python
 ```
   sudo apt install python3

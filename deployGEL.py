@@ -396,9 +396,11 @@ def installGE():
     print("\n") #given stdout has the \r and working on the same line
     output("Go to http://" + ipOutput + ":3000/login")
     output("Use   http://" + gelIngressIP + ":80/ as the Logs plugin URL setting")
+    output("Use   token: " + tokenGenToken)
 
 def installGELIngress():
     
+    global gelIngressIP
     output("Deploying GEL gateway ingress", True)
 
     replaceFields = {
